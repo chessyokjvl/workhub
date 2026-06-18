@@ -5,12 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PK WorkHub - Portfolio System</title>
     
+    <!-- ระบบตรวจจับกรณีโหลดไฟล์ Library ไม่สำเร็จ (เช่น เน็ตองค์กรบล็อก) -->
+    <script>
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.nodeName === 'SCRIPT') {
+                const root = document.getElementById('root');
+                if(root && root.innerHTML.includes('กำลังเตรียมระบบลงจอด')) {
+                    root.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;font-family:sans-serif;"><h2>⚠️ ระบบไม่สามารถโหลดไฟล์ Library ได้</h2><p>อินเทอร์เน็ตที่ใช้งานอยู่อาจกำลังบล็อกการดึงข้อมูลจากเซิร์ฟเวอร์ (CDN) หรือเน็ตเวิร์คมีปัญหา<br><b>คำแนะนำ:</b> โปรดลองสลับไปใช้เน็ตมือถือ (Personal Hotspot) หรือเปลี่ยนเครือข่าย แล้วรีเฟรชอีกครั้ง</p></div>';
+                }
+            }
+        }, true);
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.1.9/umd/Recharts.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- เปลี่ยนจาก unpkg เป็น jsdelivr เพื่อความเสถียรและหลีกเลี่ยงการโดนบล็อก -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/recharts@2.1.9/umd/Recharts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.6/babel.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -46,8 +59,18 @@
     <script type="text/babel">
         try {
             const { useState, useEffect, useMemo, useRef } = React;
-            // เพิ่ม Default Object เพื่อป้องกัน Destructuring Error
-            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Treemap, ResponsiveContainer, Tooltip, Cell } = window.Recharts || {};
+            
+            // ดึงค่าอย่างปลอดภัย ป้องกันพังถ้าระบบเน็ตเวิร์คมีปัญหา
+            const R = window.Recharts || {};
+            const BarChart = R.BarChart;
+            const Bar = R.Bar;
+            const XAxis = R.XAxis;
+            const YAxis = R.YAxis;
+            const CartesianGrid = R.CartesianGrid;
+            const Treemap = R.Treemap;
+            const ResponsiveContainer = R.ResponsiveContainer;
+            const Tooltip = R.Tooltip;
+            const Cell = R.Cell;
 
             // ==========================================
             // GAS WEB APP URL
@@ -86,7 +109,6 @@
                 BarChart2: () => (<g><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></g>),
                 LayoutTemplate: () => (<g><rect x="3" y="3" width="18" height="7" rx="2" ry="2"/><rect x="3" y="14" width="7" height="7" rx="2" ry="2"/><rect x="14" y="14" width="7" height="7" rx="2" ry="2"/></g>),
                 Box: () => (<g><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></g>),
-                // เพิ่มไอคอน Pie ที่ตกหล่น
                 Pie: () => (<g><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></g>)
             };
             const Lucide = ({ icon, size, className }) => { const Comp = Icons[icon]; return Comp ? <Icon size={size} className={className}><Comp /></Icon> : null; };
@@ -95,7 +117,6 @@
                 <div onClick={onClick} className={`bg-white rounded-2xl shadow-sm border border-slate-100/60 transition-all duration-300 ${className}`}>{children}</div>
             );
 
-            // แก้ไขการใช้คลาส Dynamic เป็น Map เพื่อให้ Tailwind สร้างสีได้อย่างถูกต้อง
             const Badge = ({ type }) => {
                 const colorMap = {
                     indigo: "bg-indigo-50 text-indigo-700 border-indigo-200",
@@ -450,8 +471,8 @@
                                             )}
 
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                <Card className="p-4 md:p-6"><h3 className="text-base md:text-lg font-bold text-slate-800 mb-6 flex items-center"><div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3"><Lucide icon="BarChart2" size={18}/></div>จำนวนแยกตามหมวดหมู่</h3><div className="h-60 md:h-72">{stats.catData.length > 0 && BarChart ? (<ResponsiveContainer width="100%" height="100%"><BarChart data={stats.catData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical"><CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" /><XAxis type="number" hide /><YAxis dataKey="name" type="category" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} width={90} /><Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} /><Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>{stats.catData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}</Bar></BarChart></ResponsiveContainer>) : <div className="h-full flex items-center justify-center text-slate-400 text-sm">ไม่พบข้อมูลกราฟ หรือกำลังโหลด...</div>}</div></Card>
-                                                <Card className="p-4 md:p-6"><h3 className="text-base md:text-lg font-bold text-slate-800 mb-6 flex items-center"><div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mr-3"><Lucide icon="LayoutTemplate" size={18}/></div>สัดส่วนประเภทผลงาน</h3><div className="h-60 md:h-72">{stats.typeData.length > 0 && Treemap ? (<ResponsiveContainer width="100%" height="100%"><Treemap data={stats.typeData} dataKey="size" aspectRatio={4/3} stroke="#fff" content={<TreemapContent />}><Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} formatter={(value) => [`${value} ชิ้นงาน`, 'จำนวน']} /></Treemap></ResponsiveContainer>) : <div className="h-full flex items-center justify-center text-slate-400 text-sm">ไม่พบข้อมูลกราฟ หรือกำลังโหลด...</div>}</div></Card>
+                                                <Card className="p-4 md:p-6"><h3 className="text-base md:text-lg font-bold text-slate-800 mb-6 flex items-center"><div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3"><Lucide icon="BarChart2" size={18}/></div>จำนวนแยกตามหมวดหมู่</h3><div className="h-60 md:h-72">{stats.catData.length > 0 && BarChart && ResponsiveContainer ? (<ResponsiveContainer width="100%" height="100%"><BarChart data={stats.catData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical"><CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" /><XAxis type="number" hide /><YAxis dataKey="name" type="category" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} width={90} /><Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} /><Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>{stats.catData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}</Bar></BarChart></ResponsiveContainer>) : <div className="h-full flex items-center justify-center text-slate-400 text-sm">ไม่พบข้อมูลกราฟ หรือกำลังโหลด...</div>}</div></Card>
+                                                <Card className="p-4 md:p-6"><h3 className="text-base md:text-lg font-bold text-slate-800 mb-6 flex items-center"><div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mr-3"><Lucide icon="LayoutTemplate" size={18}/></div>สัดส่วนประเภทผลงาน</h3><div className="h-60 md:h-72">{stats.typeData.length > 0 && Treemap && ResponsiveContainer ? (<ResponsiveContainer width="100%" height="100%"><Treemap data={stats.typeData} dataKey="size" aspectRatio={4/3} stroke="#fff" content={<TreemapContent />}><Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} formatter={(value) => [`${value} ชิ้นงาน`, 'จำนวน']} /></Treemap></ResponsiveContainer>) : <div className="h-full flex items-center justify-center text-slate-400 text-sm">ไม่พบข้อมูลกราฟ หรือกำลังโหลด...</div>}</div></Card>
                                             </div>
 
                                             {activeTab === 'admin' ? (
